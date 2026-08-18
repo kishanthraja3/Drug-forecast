@@ -5,3 +5,4 @@ scikit-learn
 gower
 streamlit
 plotly
+matplotlib
