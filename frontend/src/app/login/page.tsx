@@ -25,9 +25,10 @@ export default function LoginPage() {
     setError(null);
     setSuccess(null);
 
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
     const endpoint = isSignUp 
-      ? 'http://localhost:8000/api/auth/signup' 
-      : 'http://localhost:8000/api/auth/signin';
+      ? `${apiBase}/auth/signup` 
+      : `${apiBase}/auth/signin`;
 
     const payload = isSignUp 
       ? { organization_name: orgName, full_name: fullName, email, password, role }
