@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import { 
   PlusCircle, 
@@ -18,6 +19,7 @@ import {
 import { DEFAULT_PRODUCT_INPUTS } from '@/lib/api';
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [checkingAuth, setCheckingAuth] = React.useState(true);
 
   React.useEffect(() => {
@@ -29,11 +31,15 @@ export default function DashboardPage() {
     }
   }, []);
 
-  const defaultPayload = encodeURIComponent(JSON.stringify({
-    product_inputs: DEFAULT_PRODUCT_INPUTS,
-    top_k: 3,
-    w_analog: 0.10
-  }));
+  const handleRunBenchmark = () => {
+    const defaultPayload = {
+      product_inputs: DEFAULT_PRODUCT_INPUTS,
+      top_k: 3,
+      w_analog: 0.10
+    };
+    sessionStorage.setItem('latest_forecast_payload', JSON.stringify(defaultPayload));
+    router.push('/forecast/results');
+  };
 
   if (checkingAuth) {
     return (
@@ -68,12 +74,12 @@ export default function DashboardPage() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-              <Link
-                href={`/forecast/results?data=${defaultPayload}`}
-                className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 font-bold text-sm text-white shadow-lg shadow-blue-500/25 hover:from-cyan-400 hover:to-blue-500 transition-all transform hover:-translate-y-0.5"
+              <button
+                onClick={handleRunBenchmark}
+                className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 font-bold text-sm text-white shadow-lg shadow-blue-500/25 hover:from-cyan-400 hover:to-blue-500 transition-all transform hover:-translate-y-0.5 cursor-pointer"
               >
                 <Zap className="w-4 h-4" /> Run Apixaban Benchmark
-              </Link>
+              </button>
               <Link
                 href="/forecast/new"
                 className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white/10 hover:bg-white/20 font-bold text-sm text-white border border-white/15 backdrop-blur-md transition-all"
@@ -183,12 +189,12 @@ export default function DashboardPage() {
                     </span>
                   </td>
                   <td className="py-4 px-5 text-right">
-                    <Link
-                      href={`/forecast/results?data=${defaultPayload}`}
-                      className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-800"
+                    <button
+                      onClick={handleRunBenchmark}
+                      className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-800 cursor-pointer"
                     >
                       View Analysis <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
+                    </button>
                   </td>
                 </tr>
 

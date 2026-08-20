@@ -68,6 +68,10 @@ function ResultsContent() {
 
         if (rawData) {
           payload = JSON.parse(decodeURIComponent(rawData));
+          sessionStorage.setItem('latest_forecast_payload', JSON.stringify(payload));
+          if (typeof window !== 'undefined') {
+            window.history.replaceState(null, '', '/forecast/results');
+          }
         } else {
           const cached = sessionStorage.getItem('latest_forecast_payload');
           if (cached) {
@@ -106,7 +110,19 @@ function ResultsContent() {
       w_analog: 0.10
     };
     sessionStorage.setItem('latest_forecast_payload', JSON.stringify(defaultPayload));
-    window.location.href = `/forecast/results?data=${encodeURIComponent(JSON.stringify(defaultPayload))}`;
+    setProductInputs(defaultPayload.product_inputs);
+    setTopK(3);
+    setWAnalog(0.10);
+    setPenetration(defaultPayload.product_inputs.estimated_penetration || 0.15);
+    setHasCandidateLoaded(true);
+    setLoading(true);
+    runForecast(defaultPayload)
+      .then(setForecastData)
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+    if (typeof window !== 'undefined') {
+      window.history.replaceState(null, '', '/forecast/results');
+    }
   };
 
   const isReadOnly = role === 'management_viewer';

@@ -5,11 +5,22 @@ import Header from '@/components/Header';
 import { Database, Calendar, ArrowRight, TrendingUp, CheckCircle2 } from 'lucide-react';
 import { fetchSavedForecasts } from '@/lib/api';
 import { SavedForecastRecord } from '@/lib/types';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function SavedForecastsPage() {
+  const router = useRouter();
   const [records, setRecords] = useState<SavedForecastRecord[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const handleLoadRecord = (r: SavedForecastRecord) => {
+    const payload = {
+      product_inputs: r.input_json,
+      top_k: r.top_k || 3,
+      w_analog: r.w_analog || 0.10
+    };
+    sessionStorage.setItem('latest_forecast_payload', JSON.stringify(payload));
+    router.push('/forecast/results');
+  };
 
   useEffect(() => {
     fetchSavedForecasts()
@@ -93,12 +104,12 @@ export default function SavedForecastsPage() {
                           {r.created_at ? new Date(r.created_at).toLocaleString() : 'N/A'}
                         </td>
                         <td className="py-4 px-5 text-right">
-                          <Link
-                            href={`/forecast/results?data=${encodedPayload}`}
-                            className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-800"
+                          <button
+                            onClick={() => handleLoadRecord(r)}
+                            className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-800 cursor-pointer"
                           >
                             Load Analysis <ArrowRight className="w-3.5 h-3.5" />
-                          </Link>
+                          </button>
                         </td>
                       </tr>
                     );
