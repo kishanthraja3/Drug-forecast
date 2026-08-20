@@ -74,7 +74,7 @@ export async function saveForecastToDB(req: ForecastRequest): Promise<{ status: 
   let userId: number | undefined;
   let orgId: number | undefined;
   if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('pharmalaunch_token');
+    const token = sessionStorage.getItem('pharmalaunch_token') || localStorage.getItem('pharmalaunch_token');
     if (token && token.startsWith('token_')) {
       const parts = token.split('_');
       if (parts.length >= 3) {
@@ -108,6 +108,24 @@ export async function fetchSavedForecasts(): Promise<SavedForecastRecord[]> {
     throw new Error('Failed to fetch forecast history from database');
   }
   return res.json();
+}
+
+export async function updateUserProfile(payload: {
+  email: string;
+  full_name?: string;
+  current_password?: string;
+  new_password?: string;
+}): Promise<any> {
+  const res = await fetch(`http://localhost:8000/api/auth/update`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.detail || 'Failed to update account profile');
+  }
+  return data;
 }
 
 export const DEFAULT_PRODUCT_INPUTS = {

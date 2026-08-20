@@ -45,9 +45,16 @@ export default function LoginPage() {
         throw new Error(data.detail || 'Authentication failed');
       }
 
+      sessionStorage.setItem('pharmalaunch_token', data.token);
+      sessionStorage.setItem('pharmalaunch_org', data.organization_name);
+      sessionStorage.setItem('pharmalaunch_user_email', data.email);
+      sessionStorage.setItem('pharmalaunch_user_name', data.full_name || 'User');
+      sessionStorage.setItem('pharmalaunch_role', data.role || 'launch_director');
+
       localStorage.setItem('pharmalaunch_token', data.token);
       localStorage.setItem('pharmalaunch_org', data.organization_name);
       localStorage.setItem('pharmalaunch_user_email', data.email);
+      localStorage.setItem('pharmalaunch_user_name', data.full_name || 'User');
       localStorage.setItem('pharmalaunch_role', data.role || 'launch_director');
 
       setSuccess(isSignUp ? 'Organization account created! Redirecting to Dashboard...' : 'Signed in successfully! Redirecting to Dashboard...');

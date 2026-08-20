@@ -21,7 +21,7 @@ export default function DashboardPage() {
   const [checkingAuth, setCheckingAuth] = React.useState(true);
 
   React.useEffect(() => {
-    const token = localStorage.getItem('pharmalaunch_token');
+    const token = sessionStorage.getItem('pharmalaunch_token');
     if (!token) {
       window.location.href = '/login';
     } else {

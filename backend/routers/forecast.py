@@ -97,42 +97,8 @@ def get_analogs_catalog(
     """
     try:
         records = []
-        count = 0
-        try:
-            count = db.query(AnalogProduct).count()
-        except Exception:
-            count = 0
-            
-        if count > 0:
-            query = db.query(AnalogProduct)
-            if search:
-                s = f"%{search.strip().lower()}%"
-                query = query.filter(
-                    (AnalogProduct.product_id.ilike(s)) |
-                    (AnalogProduct.indication.ilike(s)) |
-                    (AnalogProduct.active_ingredient.ilike(s)) |
-                    (AnalogProduct.pharmacological_class.ilike(s))
-                )
-            if therapeutic_area and therapeutic_area != "All":
-                query = query.filter(AnalogProduct.therapeutic_area == therapeutic_area)
-            products = query.all()
-            for p in products:
-                records.append({
-                    "product_id": p.product_id,
-                    "therapeutic_area": p.therapeutic_area,
-                    "indication": p.indication,
-                    "active_ingredient": p.active_ingredient or "",
-                    "pharmacological_class": p.pharmacological_class or "",
-                    "mechanism_of_action": p.mechanism_of_action or "",
-                    "route_of_administration": p.route_of_administration or "Oral",
-                    "target_population": p.target_population or "Adult",
-                    "addressable_population": p.addressable_population or 0.0,
-                    "competition_level": p.competition_level or 5.0,
-                    "relative_price_index": p.relative_price_index or 1.0,
-                    "market_access_level": p.market_access_level or 5.0,
-                    "clinical_evidence_strength": p.clinical_evidence_strength or 5.0
-                })
-        elif engine and engine.similarity_df is not None:
+        # 1. First serve from in-memory engine.similarity_df (preloaded from Databricks Gold tables)
+        if engine and engine.similarity_df is not None:
             df = engine.similarity_df.copy()
             if search:
                 s = search.strip().lower()
@@ -160,6 +126,35 @@ def get_analogs_catalog(
                     "relative_price_index": float(row.get("relative_price_index", 1.0)) if pd.notna(row.get("relative_price_index")) else 1.0,
                     "market_access_level": float(row.get("market_access_level", 5.0)) if pd.notna(row.get("market_access_level")) else 5.0,
                     "clinical_evidence_strength": float(row.get("clinical_evidence_strength", 5.0)) if pd.notna(row.get("clinical_evidence_strength")) else 5.0
+                })
+        else:
+            query = db.query(AnalogProduct)
+            if search:
+                s = f"%{search.strip().lower()}%"
+                query = query.filter(
+                    (AnalogProduct.product_id.ilike(s)) |
+                    (AnalogProduct.indication.ilike(s)) |
+                    (AnalogProduct.active_ingredient.ilike(s)) |
+                    (AnalogProduct.pharmacological_class.ilike(s))
+                )
+            if therapeutic_area and therapeutic_area != "All":
+                query = query.filter(AnalogProduct.therapeutic_area == therapeutic_area)
+            products = query.all()
+            for p in products:
+                records.append({
+                    "product_id": p.product_id,
+                    "therapeutic_area": p.therapeutic_area,
+                    "indication": p.indication,
+                    "active_ingredient": p.active_ingredient or "",
+                    "pharmacological_class": p.pharmacological_class or "",
+                    "mechanism_of_action": p.mechanism_of_action or "",
+                    "route_of_administration": p.route_of_administration or "Oral",
+                    "target_population": p.target_population or "Adult",
+                    "addressable_population": p.addressable_population or 0.0,
+                    "competition_level": p.competition_level or 5.0,
+                    "relative_price_index": p.relative_price_index or 1.0,
+                    "market_access_level": p.market_access_level or 5.0,
+                    "clinical_evidence_strength": p.clinical_evidence_strength or 5.0
                 })
 
         # Ensure strict natural numerical sorting from P001 to P150

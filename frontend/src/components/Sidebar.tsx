@@ -50,10 +50,15 @@ export default function Sidebar() {
     { name: 'Forecast Explanations', href: '/forecast/explanations', icon: BookOpen },
     { name: 'Analog Database', href: '/analogs', icon: Database },
     { name: 'Saved Forecasts', href: '/saved', icon: History },
-    { name: 'Sign In / Account', href: '/login', icon: UserCheck },
+    { name: 'Account Settings', href: '/account', icon: UserCheck },
   ];
 
   const handleLogout = () => {
+    sessionStorage.removeItem('pharmalaunch_token');
+    sessionStorage.removeItem('pharmalaunch_org');
+    sessionStorage.removeItem('pharmalaunch_user_email');
+    sessionStorage.removeItem('pharmalaunch_role');
+
     localStorage.removeItem('pharmalaunch_token');
     localStorage.removeItem('pharmalaunch_org');
     localStorage.removeItem('pharmalaunch_user_email');

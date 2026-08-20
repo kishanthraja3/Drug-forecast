@@ -19,6 +19,12 @@ class SignInRequest(BaseModel):
     email: str
     password: str
 
+class UpdateProfileRequest(BaseModel):
+    email: str
+    full_name: Optional[str] = None
+    current_password: Optional[str] = None
+    new_password: Optional[str] = None
+
 class AuthResponse(BaseModel):
     status: str
     token: str
@@ -116,4 +122,52 @@ def sign_in(req: SignInRequest, db: Session = Depends(get_db)):
     except HTTPException as he:
         raise he
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/update", response_model=AuthResponse)
+def update_profile(req: UpdateProfileRequest, db: Session = Depends(get_db)):
+    try:
+        user = db.query(User).filter(User.email == req.email.strip()).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User account not found.")
+
+        # If updating password, verify current password first against database
+        if req.new_password and req.new_password.strip():
+            if not req.current_password or not req.current_password.strip():
+                raise HTTPException(status_code=400, detail="Current password is required to change password.")
+            current_hashed = hash_pass(req.current_password.strip())
+            if user.hashed_password != current_hashed:
+                raise HTTPException(status_code=400, detail="Current password is incorrect.")
+            user.hashed_password = hash_pass(req.new_password.strip())
+
+        # Update full name if provided
+        if req.full_name and req.full_name.strip():
+            user.full_name = req.full_name.strip()
+
+        db.commit()
+        db.refresh(user)
+
+        org_name = "Default Organization"
+        if user.organization_id:
+            org = db.query(Organization).filter(Organization.id == user.organization_id).first()
+            if org:
+                org_name = org.name
+
+        token = f"token_{user.id}_{user.organization_id or 1}_{user.hashed_password[:10]}"
+
+        return {
+            "status": "success",
+            "token": token,
+            "user_id": user.id,
+            "full_name": user.full_name or "User",
+            "email": user.email,
+            "role": user.role or "launch_director",
+            "organization_id": user.organization_id or 1,
+            "organization_name": org_name
+        }
+    except HTTPException as he:
+        db.rollback()
+        raise he
+    except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
