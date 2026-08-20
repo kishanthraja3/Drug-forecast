@@ -13,7 +13,10 @@ export default function SavedForecastsPage() {
 
   useEffect(() => {
     fetchSavedForecasts()
-      .then(setRecords)
+      .then((data) => {
+        const sorted = [...(data || [])].sort((a, b) => Number(a.id) - Number(b.id));
+        setRecords(sorted);
+      })
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
   }, []);
@@ -21,7 +24,7 @@ export default function SavedForecastsPage() {
   return (
     <div className="flex-1 flex flex-col">
       <Header
-        title="Saved Forecast Records (PostgreSQL Database)"
+        title="Saved Forecast Records"
         subtitle="Historical saved scenarios and commercial launch forecast runs"
         backHref="/"
       />
@@ -30,13 +33,13 @@ export default function SavedForecastsPage() {
         {loading ? (
           <div className="flex flex-col items-center justify-center p-12 space-y-3 text-slate-500">
             <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-            <p className="text-xs font-semibold">Querying PostgreSQL database...</p>
+            <p className="text-xs font-semibold">Loading forecasts...</p>
           </div>
         ) : records.length === 0 ? (
           <div className="bg-white p-12 rounded-2xl border border-slate-200 text-center text-slate-500">
             <Database className="w-10 h-10 mx-auto mb-2 text-slate-300" />
             <p className="text-sm font-bold text-slate-700">No saved forecasts in database yet</p>
-            <p className="text-xs text-slate-400 mt-1">Run a forecast and click 'Save to Database' on the results page</p>
+            <p className="text-xs text-slate-400 mt-1">Run a forecast and click 'Save Forecast' on the results page</p>
           </div>
         ) : (
           <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
@@ -46,7 +49,7 @@ export default function SavedForecastsPage() {
                 <p className="text-xs text-slate-500">Saved launch model configurations and outputs</p>
               </div>
               <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
-                PostgreSQL Connected
+                Database Connected
               </span>
             </div>
 

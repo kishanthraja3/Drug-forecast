@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 
-from backend.database import engine as db_engine, Base, get_db, SessionLocal
+from backend.database import engine as db_engine, Base, get_db, SessionLocal, IS_DATABRICKS
 import backend.models as models
 from backend.forecasting.engine import ForecastingEngine
 import backend.routers.forecast as forecast_router
@@ -65,17 +65,20 @@ def seed_analog_products_to_postgres(db: Session, data_dir: str):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Initialize database tables on startup
-    print("Initializing PostgreSQL 17 database tables...")
-    Base.metadata.create_all(bind=db_engine)
-    print("PostgreSQL 17 database tables initialized successfully!")
+    if IS_DATABRICKS:
+        # Databricks: tables are already created manually via SQL editor
+        print("Connected to Databricks SQL Warehouse — skipping DDL and local seeding.")
+    else:
+        # Local/PostgreSQL: auto-create tables and seed analog data
+        print("Initializing local database tables...")
+        Base.metadata.create_all(bind=db_engine)
+        print("Database tables initialized successfully!")
 
-    # Seed 150 benchmark products to PostgreSQL 17
-    db = SessionLocal()
-    try:
-        seed_analog_products_to_postgres(db, DATA_DIR)
-    finally:
-        db.close()
+        db = SessionLocal()
+        try:
+            seed_analog_products_to_postgres(db, DATA_DIR)
+        finally:
+            db.close()
 
     # Initialize forecasting engine on startup
     print(f"Initializing forecasting engine with data from {DATA_DIR}...")

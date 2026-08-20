@@ -49,7 +49,7 @@ export default function Sidebar() {
     { name: 'Forecast Analysis', href: '/forecast/results', icon: TrendingUp },
     { name: 'Forecast Explanations', href: '/forecast/explanations', icon: BookOpen },
     { name: 'Analog Database', href: '/analogs', icon: Database },
-    { name: 'Saved DB Forecasts', href: '/saved', icon: History },
+    { name: 'Saved Forecasts', href: '/saved', icon: History },
     { name: 'Sign In / Account', href: '/login', icon: UserCheck },
   ];
 
@@ -76,33 +76,9 @@ export default function Sidebar() {
         </div>
       </div>
 
-      {/* Workspace Indicator & Auth Link */}
-      <div className="mx-3 my-4 p-3 rounded-lg bg-slate-900/90 border border-slate-800 space-y-1.5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5 overflow-hidden">
-            <Building2 className="w-4 h-4 text-cyan-400 shrink-0" />
-            <div className="text-xs overflow-hidden">
-              <p className="text-slate-200 font-semibold leading-none truncate">{orgName}</p>
-              <p className="text-[10px] text-slate-400 mt-0.5 truncate">{userEmail}</p>
-            </div>
-          </div>
-          <Link 
-            href="/login"
-            title="Account / Login"
-            className="text-slate-400 hover:text-cyan-400 p-1 rounded hover:bg-slate-800 transition-colors"
-          >
-            <UserCheck className="w-4 h-4" />
-          </Link>
-        </div>
-        <div className="pt-1 border-t border-slate-800/60 flex items-center gap-1.5 text-[10px] font-semibold text-cyan-400">
-          <Award className="w-3 h-3 text-cyan-400" />
-          <span className="truncate">{roleLabels[role] || 'Launch Director'}</span>
-        </div>
-      </div>
-
       {/* Main Navigation Links */}
-      <nav className="flex-1 px-3 space-y-1.5">
-        <div className="px-3 pt-2 pb-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+      <nav className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto">
+        <div className="px-3 pb-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
           Core Workflows
         </div>
         {navItems.map((item) => {
@@ -125,26 +101,40 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* Engine Status & Footer */}
-      <div className="p-4 border-t border-slate-800/80 bg-slate-950/40 space-y-3">
-        <div className="flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            <span className="font-semibold text-slate-300">PostgreSQL 17 Live</span>
+      {/* User / Workspace Profile Card with Logout (Replaces Database Live) */}
+      <div className="p-3 border-t border-slate-800/80 bg-slate-950/60">
+        <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2 shadow-sm">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-center gap-2.5 overflow-hidden min-w-0">
+              <div className="w-8 h-8 rounded-lg bg-cyan-950/80 border border-cyan-800/40 flex items-center justify-center shrink-0">
+                <Building2 className="w-4 h-4 text-cyan-400" />
+              </div>
+              <div className="text-xs overflow-hidden min-w-0">
+                <p className="text-slate-200 font-semibold leading-tight truncate">{orgName}</p>
+                <p className="text-[10px] text-slate-400 mt-0.5 truncate">{userEmail}</p>
+              </div>
+            </div>
+            <button
+              onClick={handleLogout}
+              title="Logout"
+              className="text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 p-1.5 rounded-lg transition-colors shrink-0"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
-          <button 
-            onClick={handleLogout}
-            className="text-[10px] text-slate-400 hover:text-rose-400 flex items-center gap-1 font-semibold"
-          >
-            <LogOut className="w-3 h-3" /> Logout
-          </button>
+          <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px]">
+            <div className="flex items-center gap-1.5 text-cyan-400 font-semibold truncate">
+              <Award className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+              <span className="truncate">{roleLabels[role] || 'Launch Director'}</span>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="text-[10px] font-semibold text-slate-400 hover:text-rose-400 transition-colors flex items-center gap-1"
+            >
+              <LogOut className="w-3 h-3" /> Logout
+            </button>
+          </div>
         </div>
-        <p className="text-[11px] text-slate-400 leading-normal">
-          Bass Diffusion + Gower Analogs + PostgreSQL 17
-        </p>
       </div>
     </aside>
   );

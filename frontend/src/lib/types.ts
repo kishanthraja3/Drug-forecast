@@ -24,6 +24,8 @@ export interface ForecastRequest {
   product_inputs: ProductInputs;
   top_k: number;
   w_analog: number;
+  user_id?: number;
+  organization_id?: number;
 }
 
 export interface RecalculateRequest {

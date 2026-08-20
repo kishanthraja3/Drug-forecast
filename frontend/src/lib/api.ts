@@ -71,10 +71,29 @@ export async function fetchAnalogsCatalog(search?: string, therapeuticArea?: str
 }
 
 export async function saveForecastToDB(req: ForecastRequest): Promise<{ status: string; message: string; id: number }> {
+  let userId: number | undefined;
+  let orgId: number | undefined;
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('pharmalaunch_token');
+    if (token && token.startsWith('token_')) {
+      const parts = token.split('_');
+      if (parts.length >= 3) {
+        userId = parseInt(parts[1], 10) || undefined;
+        orgId = parseInt(parts[2], 10) || undefined;
+      }
+    }
+  }
+
+  const payload: ForecastRequest = {
+    ...req,
+    user_id: req.user_id ?? userId,
+    organization_id: req.organization_id ?? orgId,
+  };
+
   const res = await fetch(`${API_BASE_URL}/forecast/save`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(req),
+    body: JSON.stringify(payload),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: 'Failed to save forecast to database' }));

@@ -19,6 +19,88 @@ import {
   BarChart3
 } from 'lucide-react';
 
+interface CustomizableSelectProps {
+  label: string;
+  field: keyof ProductInputs;
+  value: string;
+  options: string[];
+  onChange: (field: keyof ProductInputs, value: string) => void;
+  fullWidth?: boolean;
+}
+
+function CustomizableSelect({
+  label,
+  field,
+  value,
+  options,
+  onChange,
+  fullWidth = false,
+}: CustomizableSelectProps) {
+  const isCustomValue = !options.includes(value) && value !== '';
+  const [isOther, setIsOther] = useState(isCustomValue);
+
+  useEffect(() => {
+    if (options.includes(value)) {
+      setIsOther(false);
+    }
+  }, [value, options]);
+
+  return (
+    <div className={fullWidth ? 'md:col-span-2' : ''}>
+      <div className="flex items-center justify-between mb-1">
+        <label className="block text-xs font-bold text-slate-700">{label}</label>
+        {isOther && (
+          <button
+            type="button"
+            onClick={() => {
+              setIsOther(false);
+              onChange(field, options[0] || '');
+            }}
+            className="text-[11px] font-semibold text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+          >
+            ← Back to dropdown
+          </button>
+        )}
+      </div>
+
+      {isOther ? (
+        <input
+          type="text"
+          placeholder={`Enter custom ${label.toLowerCase()}...`}
+          value={value === '__OTHER__' ? '' : value}
+          onChange={(e) => onChange(field, e.target.value)}
+          className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white font-medium shadow-xs"
+          autoFocus
+          required
+        />
+      ) : (
+        <select
+          value={options.includes(value) ? value : '__OTHER__'}
+          onChange={(e) => {
+            if (e.target.value === '__OTHER__') {
+              setIsOther(true);
+              onChange(field, '');
+            } else {
+              onChange(field, e.target.value);
+            }
+          }}
+          className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white font-medium shadow-xs"
+          required
+        >
+          {options.map((opt) => (
+            <option key={opt} value={opt}>
+              {opt}
+            </option>
+          ))}
+          <option value="__OTHER__" className="font-semibold text-blue-600">
+            + Other (Custom input...)
+          </option>
+        </select>
+      )}
+    </div>
+  );
+}
+
 export default function NewForecastPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -170,12 +252,12 @@ export default function NewForecastPage() {
 
         {/* Wizard Form */}
         <form onSubmit={handleSubmit} className="bg-white p-8 rounded-2xl border border-slate-200/80 shadow-xs space-y-8">
-          {/* STEP 1: Clinical & Product Metadata with Recommendation Dropdowns */}
+          {/* STEP 1: Clinical & Product Metadata */}
           {step === 1 && (
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-bold text-slate-900">Step 1: Clinical & Product Identity</h3>
-                <p className="text-xs text-slate-500">Select recommended feature dropdown classifications or enter candidate parameters</p>
+                <p className="text-xs text-slate-500">Select feature dropdown classifications or enter custom candidate parameters</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -201,131 +283,69 @@ export default function NewForecastPage() {
                   />
                 </div>
 
-                {/* Therapeutic Area Dropdown Recommendation */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center justify-between">
-                    <span>Therapeutic Area</span>
-                    <span className="text-[10px] text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded border border-blue-200">Recommended Dropdown</span>
-                  </label>
-                  <select
-                    value={formData.therapeutic_area}
-                    onChange={(e) => handleChange('therapeutic_area', e.target.value)}
-                    className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white font-medium shadow-xs"
-                    required
-                  >
-                    {sampleTherapeuticAreas.map((ta) => (
-                      <option key={ta} value={ta}>{ta}</option>
-                    ))}
-                  </select>
-                </div>
+                {/* Therapeutic Area */}
+                <CustomizableSelect
+                  label="Therapeutic Area"
+                  field="therapeutic_area"
+                  value={formData.therapeutic_area}
+                  options={sampleTherapeuticAreas}
+                  onChange={handleChange}
+                />
 
-                {/* Primary Indication Dropdown Recommendation */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center justify-between">
-                    <span>Primary Indication</span>
-                    <span className="text-[10px] text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded border border-blue-200">Recommended Dropdown</span>
-                  </label>
-                  <select
-                    value={formData.indication}
-                    onChange={(e) => handleChange('indication', e.target.value)}
-                    className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white font-medium shadow-xs"
-                    required
-                  >
-                    {sampleIndications.map((ind) => (
-                      <option key={ind} value={ind}>{ind}</option>
-                    ))}
-                  </select>
-                </div>
+                {/* Primary Indication */}
+                <CustomizableSelect
+                  label="Primary Indication"
+                  field="indication"
+                  value={formData.indication}
+                  options={sampleIndications}
+                  onChange={handleChange}
+                />
 
-                {/* Active Ingredient Dropdown Recommendation */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center justify-between">
-                    <span>Active Ingredient</span>
-                    <span className="text-[10px] text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded border border-blue-200">Recommended Dropdown</span>
-                  </label>
-                  <select
-                    value={formData.active_ingredient}
-                    onChange={(e) => handleChange('active_ingredient', e.target.value)}
-                    className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white font-medium shadow-xs"
-                    required
-                  >
-                    {sampleActiveIngredients.map((ai) => (
-                      <option key={ai} value={ai}>{ai}</option>
-                    ))}
-                  </select>
-                </div>
+                {/* Active Ingredient */}
+                <CustomizableSelect
+                  label="Active Ingredient"
+                  field="active_ingredient"
+                  value={formData.active_ingredient}
+                  options={sampleActiveIngredients}
+                  onChange={handleChange}
+                />
 
-                {/* Pharmacological Class Dropdown Recommendation */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center justify-between">
-                    <span>Pharmacological Class</span>
-                    <span className="text-[10px] text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded border border-blue-200">Recommended Dropdown</span>
-                  </label>
-                  <select
-                    value={formData.pharmacological_class}
-                    onChange={(e) => handleChange('pharmacological_class', e.target.value)}
-                    className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white font-medium shadow-xs"
-                    required
-                  >
-                    {samplePharmClasses.map((pc) => (
-                      <option key={pc} value={pc}>{pc}</option>
-                    ))}
-                  </select>
-                </div>
+                {/* Pharmacological Class */}
+                <CustomizableSelect
+                  label="Pharmacological Class"
+                  field="pharmacological_class"
+                  value={formData.pharmacological_class}
+                  options={samplePharmClasses}
+                  onChange={handleChange}
+                />
 
-                {/* Mechanism of Action (MoA) Dropdown Recommendation */}
-                <div className="md:col-span-2">
-                  <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center justify-between">
-                    <span>Mechanism of Action (MoA)</span>
-                    <span className="text-[10px] text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded border border-blue-200">Recommended Dropdown</span>
-                  </label>
-                  <select
-                    value={formData.mechanism_of_action}
-                    onChange={(e) => handleChange('mechanism_of_action', e.target.value)}
-                    className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white font-medium shadow-xs"
-                    required
-                  >
-                    {sampleMoAs.map((moa) => (
-                      <option key={moa} value={moa}>{moa}</option>
-                    ))}
-                  </select>
-                </div>
+                {/* Mechanism of Action (MoA) */}
+                <CustomizableSelect
+                  label="Mechanism of Action (MoA)"
+                  field="mechanism_of_action"
+                  value={formData.mechanism_of_action}
+                  options={sampleMoAs}
+                  onChange={handleChange}
+                  fullWidth
+                />
 
-                {/* Route of Administration Dropdown Recommendation */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center justify-between">
-                    <span>Route of Administration</span>
-                    <span className="text-[10px] text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded border border-blue-200">Recommended Dropdown</span>
-                  </label>
-                  <select
-                    value={formData.route_of_administration}
-                    onChange={(e) => handleChange('route_of_administration', e.target.value)}
-                    className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white font-medium shadow-xs"
-                    required
-                  >
-                    {sampleRoutes.map((r) => (
-                      <option key={r} value={r}>{r}</option>
-                    ))}
-                  </select>
-                </div>
+                {/* Route of Administration */}
+                <CustomizableSelect
+                  label="Route of Administration"
+                  field="route_of_administration"
+                  value={formData.route_of_administration}
+                  options={sampleRoutes}
+                  onChange={handleChange}
+                />
 
-                {/* Target Population Dropdown Recommendation */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center justify-between">
-                    <span>Target Population</span>
-                    <span className="text-[10px] text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded border border-blue-200">Recommended Dropdown</span>
-                  </label>
-                  <select
-                    value={formData.target_population}
-                    onChange={(e) => handleChange('target_population', e.target.value)}
-                    className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white font-medium shadow-xs"
-                    required
-                  >
-                    {samplePopulations.map((tp) => (
-                      <option key={tp} value={tp}>{tp}</option>
-                    ))}
-                  </select>
-                </div>
+                {/* Target Population */}
+                <CustomizableSelect
+                  label="Target Population"
+                  field="target_population"
+                  value={formData.target_population}
+                  options={samplePopulations}
+                  onChange={handleChange}
+                />
               </div>
             </div>
           )}
@@ -565,7 +585,7 @@ export default function NewForecastPage() {
                     className="w-full accent-blue-600"
                   />
                   <p className="text-[11px] text-slate-500">
-                    Selects top {topK} products with highest Gower similarity scores out of 150 historical launch curves stored in PostgreSQL 17.
+                    Selects top {topK} products with highest Gower similarity scores out of 150 historical launch curves.
                   </p>
                 </div>
 

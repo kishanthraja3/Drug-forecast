@@ -10,8 +10,8 @@ from backend.schemas import (
 )
 from backend.forecasting.engine import ForecastingEngine
 from backend.forecasting.scenario_analysis import run_scenario_analysis
-from backend.database import get_db
-from backend.models import UserForecastInput, ForecastRecord, AnalogProduct
+from backend.database import get_db, get_next_id
+from backend.models import UserForecastInput, ForecastRecord, AnalogProduct, Organization, User
 
 router = APIRouter(prefix="/api", tags=["forecast"])
 
@@ -78,6 +78,13 @@ def get_form_options(engine: ForecastingEngine = Depends(get_engine)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+import re
+import pandas as pd
+
+def extract_numeric_id(pid: str) -> int:
+    match = re.search(r'\d+', str(pid))
+    return int(match.group()) if match else 999999
+
 @router.get("/analogs")
 def get_analogs_catalog(
     search: Optional[str] = Query(None),
@@ -86,42 +93,77 @@ def get_analogs_catalog(
     engine: ForecastingEngine = Depends(get_engine)
 ):
     """
-    Queries 150 benchmark products directly from PostgreSQL 17 database.
+    Queries 150 benchmark products naturally ordered from P001 to P150.
     """
     try:
-        query = db.query(AnalogProduct)
-        
-        if search:
-            s = f"%{search.strip().lower()}%"
-            query = query.filter(
-                (AnalogProduct.product_id.ilike(s)) |
-                (AnalogProduct.indication.ilike(s)) |
-                (AnalogProduct.active_ingredient.ilike(s)) |
-                (AnalogProduct.pharmacological_class.ilike(s))
-            )
-            
-        if therapeutic_area and therapeutic_area != "All":
-            query = query.filter(AnalogProduct.therapeutic_area == therapeutic_area)
-            
-        products = query.all()
-        
         records = []
-        for p in products:
-            records.append({
-                "product_id": p.product_id,
-                "therapeutic_area": p.therapeutic_area,
-                "indication": p.indication,
-                "active_ingredient": p.active_ingredient or "",
-                "pharmacological_class": p.pharmacological_class or "",
-                "mechanism_of_action": p.mechanism_of_action or "",
-                "route_of_administration": p.route_of_administration or "Oral",
-                "target_population": p.target_population or "Adult",
-                "addressable_population": p.addressable_population or 0.0,
-                "competition_level": p.competition_level or 5.0,
-                "relative_price_index": p.relative_price_index or 1.0,
-                "market_access_level": p.market_access_level or 5.0,
-                "clinical_evidence_strength": p.clinical_evidence_strength or 5.0
-            })
+        count = 0
+        try:
+            count = db.query(AnalogProduct).count()
+        except Exception:
+            count = 0
+            
+        if count > 0:
+            query = db.query(AnalogProduct)
+            if search:
+                s = f"%{search.strip().lower()}%"
+                query = query.filter(
+                    (AnalogProduct.product_id.ilike(s)) |
+                    (AnalogProduct.indication.ilike(s)) |
+                    (AnalogProduct.active_ingredient.ilike(s)) |
+                    (AnalogProduct.pharmacological_class.ilike(s))
+                )
+            if therapeutic_area and therapeutic_area != "All":
+                query = query.filter(AnalogProduct.therapeutic_area == therapeutic_area)
+            products = query.all()
+            for p in products:
+                records.append({
+                    "product_id": p.product_id,
+                    "therapeutic_area": p.therapeutic_area,
+                    "indication": p.indication,
+                    "active_ingredient": p.active_ingredient or "",
+                    "pharmacological_class": p.pharmacological_class or "",
+                    "mechanism_of_action": p.mechanism_of_action or "",
+                    "route_of_administration": p.route_of_administration or "Oral",
+                    "target_population": p.target_population or "Adult",
+                    "addressable_population": p.addressable_population or 0.0,
+                    "competition_level": p.competition_level or 5.0,
+                    "relative_price_index": p.relative_price_index or 1.0,
+                    "market_access_level": p.market_access_level or 5.0,
+                    "clinical_evidence_strength": p.clinical_evidence_strength or 5.0
+                })
+        elif engine and engine.similarity_df is not None:
+            df = engine.similarity_df.copy()
+            if search:
+                s = search.strip().lower()
+                df = df[
+                    df["product_id"].astype(str).str.lower().str.contains(s, na=False) |
+                    df["indication"].astype(str).str.lower().str.contains(s, na=False) |
+                    df["active_ingredient"].astype(str).str.lower().str.contains(s, na=False) |
+                    df["pharmacological_class"].astype(str).str.lower().str.contains(s, na=False)
+                ]
+            if therapeutic_area and therapeutic_area != "All":
+                df = df[df["therapeutic_area"] == therapeutic_area]
+
+            for _, row in df.iterrows():
+                records.append({
+                    "product_id": str(row.get("product_id", "")),
+                    "therapeutic_area": str(row.get("therapeutic_area", "")),
+                    "indication": str(row.get("indication", "")),
+                    "active_ingredient": str(row.get("active_ingredient", "")) if pd.notna(row.get("active_ingredient")) else "",
+                    "pharmacological_class": str(row.get("pharmacological_class", "")) if pd.notna(row.get("pharmacological_class")) else "",
+                    "mechanism_of_action": str(row.get("mechanism_of_action", "")) if pd.notna(row.get("mechanism_of_action")) else "",
+                    "route_of_administration": str(row.get("route_of_administration", "Oral")),
+                    "target_population": str(row.get("target_population", "Adult")),
+                    "addressable_population": float(row.get("addressable_population", 0)) if pd.notna(row.get("addressable_population")) else 0.0,
+                    "competition_level": float(row.get("competition_level", 5.0)) if pd.notna(row.get("competition_level")) else 5.0,
+                    "relative_price_index": float(row.get("relative_price_index", 1.0)) if pd.notna(row.get("relative_price_index")) else 1.0,
+                    "market_access_level": float(row.get("market_access_level", 5.0)) if pd.notna(row.get("market_access_level")) else 5.0,
+                    "clinical_evidence_strength": float(row.get("clinical_evidence_strength", 5.0)) if pd.notna(row.get("clinical_evidence_strength")) else 5.0
+                })
+
+        # Ensure strict natural numerical sorting from P001 to P150
+        records.sort(key=lambda x: extract_numeric_id(x["product_id"]))
 
         return {
             "total": len(records),
@@ -146,8 +188,24 @@ def save_user_forecast(
         # Calculate full forecast results
         full_result = engine.run(drug_dict, top_k=req.top_k, w_analog=req.w_analog)
 
+        # Resolve user_id and organization_id
+        user_id = req.user_id
+        organization_id = req.organization_id
+
+        if not user_id:
+            first_user = db.query(User).first()
+            if first_user:
+                user_id = first_user.id
+                organization_id = organization_id or first_user.organization_id
+        if not organization_id:
+            first_org = db.query(Organization).first()
+            if first_org:
+                organization_id = first_org.id
+
         # 1. Also store inputs in user_forecast_inputs table
         user_input_record = UserForecastInput(
+            id=get_next_id(db, UserForecastInput),
+            user_id=user_id,
             product_id=req.product_inputs.product_id,
             product_name=req.product_inputs.product_name,
             therapeutic_area=req.product_inputs.therapeutic_area,
@@ -162,6 +220,9 @@ def save_user_forecast(
 
         # 2. Store full forecast outputs in forecast_records table
         forecast_record = ForecastRecord(
+            id=get_next_id(db, ForecastRecord),
+            organization_id=organization_id,
+            user_id=user_id,
             product_id=req.product_inputs.product_id,
             product_name=req.product_inputs.product_name,
             therapeutic_area=req.product_inputs.therapeutic_area,
@@ -205,7 +266,7 @@ def get_user_forecast_history(
     Retrieves full stored forecast calculation records directly from PostgreSQL 17 database.
     """
     try:
-        records = db.query(ForecastRecord).order_by(ForecastRecord.created_at.desc()).all()
+        records = db.query(ForecastRecord).order_by(ForecastRecord.id.asc()).all()
         results = []
         for r in records:
             results.append({

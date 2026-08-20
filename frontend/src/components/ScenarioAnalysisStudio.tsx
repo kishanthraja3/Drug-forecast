@@ -381,7 +381,7 @@ export default function ScenarioAnalysisStudio({
 
               {scenarioData && (
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={scenarioData.weekly_comparison} margin={{ top: 10, right: 20, left: 10, bottom: 20 }}>
+                  <LineChart data={scenarioData.weekly_comparison} margin={{ top: 30, right: 20, left: 10, bottom: 20 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
                     <XAxis 
                       dataKey="week" 
@@ -416,7 +416,8 @@ export default function ScenarioAnalysisStudio({
                         position: 'top', 
                         fill: '#DC2626', 
                         fontSize: 11,
-                        fontWeight: 'bold'
+                        fontWeight: 'bold',
+                        dy: -6
                       }} 
                     />
 
@@ -441,45 +442,6 @@ export default function ScenarioAnalysisStudio({
               )}
             </div>
           </div>
-
-          {/* Scenario Explanation Card */}
-          {scenarioData && scenarioData.explanation && (
-            <div className="bg-slate-900 text-white p-6 rounded-2xl border border-slate-800 shadow-md space-y-4">
-              <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
-                <Info className="w-5 h-5 text-indigo-400" />
-                <h4 className="text-sm font-bold text-white">Scenario Plain-Language Analysis & Drivers</h4>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                {/* Changed Assumptions */}
-                <div className="bg-slate-800/60 p-3.5 rounded-xl border border-slate-700/60 space-y-1.5">
-                  <span className="text-[11px] font-bold text-indigo-300 uppercase tracking-wider block">1. Changed Assumptions</span>
-                  <ul className="space-y-1 text-slate-300 list-disc list-inside">
-                    {scenarioData.explanation.assumptions_changed.map((item, idx) => (
-                      <li key={idx}>{item}</li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Individual Driver Effects */}
-                <div className="bg-slate-800/60 p-3.5 rounded-xl border border-slate-700/60 space-y-1.5">
-                  <span className="text-[11px] font-bold text-indigo-300 uppercase tracking-wider block">2. Driver Effects</span>
-                  <ul className="space-y-1 text-slate-300 list-disc list-inside">
-                    {scenarioData.explanation.individual_effects.map((item, idx) => (
-                      <li key={idx}>{item}</li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-
-              {/* Overall Impact & Direction */}
-              <div className="bg-indigo-950/60 p-4 rounded-xl border border-indigo-800/60 text-xs space-y-1">
-                <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider block">3. Directional Impact & 52-Week Summary</span>
-                <p className="text-slate-200 leading-relaxed">{scenarioData.explanation.directional_impact}</p>
-                <p className="text-slate-400 mt-1">{scenarioData.explanation.overall_impact}</p>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>

@@ -2,12 +2,12 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Header from '@/components/Header';
-import { Building2, Mail, Lock, User, ArrowRight, ShieldCheck, CheckCircle2, UserCheck } from 'lucide-react';
+import { Building2, Mail, Lock, User, ArrowRight, ArrowLeft, CheckCircle2, UserCheck, Eye, EyeOff } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
   const [isSignUp, setIsSignUp] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const [orgName, setOrgName] = useState('Novartis Commercial');
   const [fullName, setFullName] = useState('US Commercial Director');
@@ -62,173 +62,261 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col min-h-screen bg-slate-950 text-white select-none relative overflow-hidden">
-      {/* Background Decorative Glow */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-10 right-10 w-[400px] h-[400px] bg-cyan-600/10 rounded-full blur-3xl pointer-events-none" />
+    <div className="w-full min-h-screen bg-slate-950 text-white flex items-center justify-center p-4 sm:p-6 py-12 relative select-none">
+      {/* Background Decorative Ambient Glows */}
+      <div className="fixed top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="fixed bottom-12 right-12 w-[350px] h-[350px] bg-cyan-600/10 rounded-full blur-3xl pointer-events-none" />
 
-      <Header
-        title="PharmaLaunch PRO — Enterprise Launch Forecasting Platform"
-        subtitle="PostgreSQL 17 Database Authentication & Quantitative Forecast Engine Portal"
-        hideExport={true}
-      />
-
-      <div className="flex-1 flex items-center justify-center p-6 relative z-10">
-        <div className="w-full max-w-md bg-slate-900/90 backdrop-blur-xl p-8 rounded-3xl border border-slate-800 shadow-2xl space-y-6">
-          <div className="text-center space-y-2">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white font-black text-2xl mx-auto shadow-xl shadow-blue-500/25 border border-cyan-400/30">
-              P
-            </div>
-            <h1 className="text-xl font-black tracking-tight text-white">
-              PharmaLaunch <span className="text-cyan-400 font-extrabold text-xs px-2 py-0.5 rounded bg-cyan-950/80 border border-cyan-800">PRO</span>
-            </h1>
-            <h2 className="text-base font-bold text-slate-200">
-              {isSignUp ? 'Register Launch Organization' : 'Sign In to Enterprise Workspace'}
-            </h2>
-            <p className="text-xs text-slate-400">
-              {isSignUp 
-                ? 'Create a pharmaceutical organization profile connected to PostgreSQL 17'
-                : 'Access your persistent forecast studio and PostgreSQL historical records'
-              }
-            </p>
+      {/* Main Authentication Card */}
+      <div className={`w-full ${isSignUp ? 'max-w-xl' : 'max-w-md'} bg-slate-900/90 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-slate-800 shadow-2xl shadow-black/60 space-y-5 relative z-10 transition-all duration-200`}>
+        
+        {/* Top bar with back button */}
+        {isSignUp && (
+          <div className="flex items-center justify-between pb-1">
+            <button
+              type="button"
+              onClick={() => {
+                setIsSignUp(false);
+                setError(null);
+                setSuccess(null);
+              }}
+              className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-cyan-400 font-semibold transition-colors group cursor-pointer"
+            >
+              <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-1" />
+              <span>Back to Sign In</span>
+            </button>
+            <span className="text-[11px] font-medium text-slate-500">Step 1 of 1</span>
           </div>
+        )}
 
-          {error && (
-            <div className="p-3 bg-rose-950/80 border border-rose-800 text-rose-300 text-xs rounded-xl text-center font-medium">
-              {error}
-            </div>
-          )}
+        {/* Card Header & Branding */}
+        <div className="text-center space-y-1.5">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white font-black text-xl mx-auto shadow-lg shadow-blue-500/25 border border-cyan-400/30">
+            P
+          </div>
+          <h1 className="text-lg font-black tracking-tight text-white">
+            PharmaLaunch <span className="text-cyan-400 font-extrabold text-[11px] px-2 py-0.5 rounded bg-cyan-950/80 border border-cyan-800">PRO</span>
+          </h1>
+          <h2 className="text-sm font-bold text-slate-200">
+            {isSignUp ? 'Register Launch Organization' : 'Sign In to Enterprise Workspace'}
+          </h2>
+          <p className="text-[11px] text-slate-400 max-w-sm mx-auto">
+            {isSignUp 
+              ? 'Create a pharmaceutical organization profile connected to your cloud workspace'
+              : 'Access your persistent forecast studio and historical records'
+            }
+          </p>
+        </div>
 
-          {success && (
-            <div className="p-3 bg-emerald-950/80 border border-emerald-800 text-emerald-300 text-xs rounded-xl text-center font-semibold flex items-center justify-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" /> {success}
-            </div>
-          )}
+        {/* Error Alert */}
+        {error && (
+          <div className="p-3 bg-rose-950/80 border border-rose-800 text-rose-300 text-xs rounded-xl text-center font-medium leading-relaxed">
+            {error}
+          </div>
+        )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {isSignUp && (
-              <>
+        {/* Success Alert */}
+        {success && (
+          <div className="p-3 bg-emerald-950/80 border border-emerald-800 text-emerald-300 text-xs rounded-xl text-center font-semibold flex items-center justify-center gap-2 leading-relaxed">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> 
+            <span>{success}</span>
+          </div>
+        )}
+
+        {/* Form Fields */}
+        <form onSubmit={handleSubmit} className="space-y-3.5">
+          {isSignUp ? (
+            <>
+              {/* Row 1: Org Name + Full Name */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
+                  <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">
                     Organization Name
                   </label>
                   <div className="relative">
-                    <Building2 className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
+                    <Building2 className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-3 pointer-events-none" />
                     <input
                       type="text"
                       required
                       value={orgName}
                       onChange={(e) => setOrgName(e.target.value)}
-                      placeholder="e.g. Novartis Commercial"
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl py-2.5 pl-10 pr-4 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+                      placeholder="e.g. Novartis"
+                      className="w-full bg-slate-900 border border-slate-800 rounded-xl py-2 pl-9 pr-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition-colors"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
+                  <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">
                     Full Name
                   </label>
                   <div className="relative">
-                    <User className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
+                    <User className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-3 pointer-events-none" />
                     <input
                       type="text"
                       required
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      placeholder="Your name"
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl py-2.5 pl-10 pr-4 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+                      placeholder="Your full name"
+                      className="w-full bg-slate-900 border border-slate-800 rounded-xl py-2 pl-9 pr-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition-colors"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Row 2: Work Email + Role */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">
+                    Work Email
+                  </label>
+                  <div className="relative">
+                    <Mail className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-3 pointer-events-none" />
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="name@company.com"
+                      className="w-full bg-slate-900 border border-slate-800 rounded-xl py-2 pl-9 pr-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition-colors"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
-                    User Role Assignment
+                  <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">
+                    Role Assignment
                   </label>
                   <div className="relative">
-                    <UserCheck className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
+                    <UserCheck className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-3 pointer-events-none" />
                     <select
                       value={role}
                       onChange={(e) => setRole(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl py-2.5 pl-10 pr-4 text-xs text-white focus:outline-none focus:border-cyan-500 appearance-none"
+                      className="w-full bg-slate-900 border border-slate-800 rounded-xl py-2 pl-9 pr-3 text-xs text-white focus:outline-none focus:border-cyan-500 appearance-none cursor-pointer transition-colors"
                     >
-                      <option value="launch_director">Launch Director / Head Analyst (Full Access)</option>
-                      <option value="forecast_analyst">Forecast Analyst (Analyst & Scenario Access)</option>
-                      <option value="commercial_associate">Commercial / Launch Associate (Inputs & Actuals)</option>
-                      <option value="management_viewer">Management / Stakeholder Viewer (Read-Only)</option>
+                      <option value="launch_director">Launch Director (Full)</option>
+                      <option value="forecast_analyst">Forecast Analyst</option>
+                      <option value="commercial_associate">Commercial Associate</option>
+                      <option value="management_viewer">Stakeholder (Viewer)</option>
                     </select>
                   </div>
                 </div>
+              </div>
+
+              {/* Row 3: Password */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">
+                  Password
+                </label>
+                <div className="relative">
+                  <Lock className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-3 pointer-events-none" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl py-2 pl-9 pr-10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-2 text-slate-400 hover:text-cyan-400 transition-colors cursor-pointer p-0.5 rounded"
+                    title={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-3.5 h-3.5" />
+                    ) : (
+                      <Eye className="w-3.5 h-3.5" />
+                    )}
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Sign In Mode (Single Column) */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">
+                  Work Email
+                </label>
+                <div className="relative">
+                  <Mail className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-3 pointer-events-none" />
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="commercial@pharmalaunch.com"
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl py-2.5 pl-9 pr-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition-colors"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">
+                  Password
+                </label>
+                <div className="relative">
+                  <Lock className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-3 pointer-events-none" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl py-2.5 pl-9 pr-10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-2.5 text-slate-400 hover:text-cyan-400 transition-colors cursor-pointer p-0.5 rounded"
+                    title={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-2.5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-900/30 transition-all mt-1 cursor-pointer disabled:opacity-50"
+          >
+            {loading ? (
+              <span>Processing Request...</span>
+            ) : (
+              <>
+                <span>{isSignUp ? 'Create Organization Account' : 'Sign In to Workspace'}</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </>
             )}
+          </button>
+        </form>
 
-            <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
-                Work Email
-              </label>
-              <div className="relative">
-                <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="commercial@pharmalaunch.com"
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl py-2.5 pl-10 pr-4 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
-                Password
-              </label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl py-2.5 pl-10 pr-4 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-900/30 transition-all mt-2"
-            >
-              {loading ? (
-                <span>Processing PostgreSQL 17 Request...</span>
-              ) : (
-                <>
-                  <span>{isSignUp ? 'Create Organization Account' : 'Sign In to Workspace'}</span>
-                  <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </button>
-          </form>
-
-          <div className="pt-4 border-t border-slate-800 text-center">
-            <button
-              type="button"
-              onClick={() => {
-                setIsSignUp(!isSignUp);
-                setError(null);
-                setSuccess(null);
-              }}
-              className="text-xs text-cyan-400 hover:text-cyan-300 font-semibold"
-            >
-              {isSignUp 
-                ? 'Already have an organization account? Sign In'
-                : 'Need to register a new launching organization? Sign Up'
-              }
-            </button>
-          </div>
+        {/* Bottom Switcher */}
+        <div className="pt-3.5 border-t border-slate-800/80 text-center">
+          <button
+            type="button"
+            onClick={() => {
+              setIsSignUp(!isSignUp);
+              setError(null);
+              setSuccess(null);
+            }}
+            className="text-xs text-cyan-400 hover:text-cyan-300 font-semibold cursor-pointer transition-colors"
+          >
+            {isSignUp 
+              ? 'Already have an organization account? Sign In'
+              : 'Need to register a new launching organization? Sign Up'
+            }
+          </button>
         </div>
       </div>
     </div>

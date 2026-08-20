@@ -26,6 +26,8 @@ class ForecastRequest(BaseModel):
     product_inputs: ProductInputs
     top_k: int = Field(3, ge=1, le=10, description="Number of top analogs (1 to 10)")
     w_analog: float = Field(0.10, ge=0.0, le=1.0, description="Weight assigned to analog forecast curve (0.0 to 1.0)")
+    user_id: Optional[int] = None
+    organization_id: Optional[int] = None
 
 class RecalculateRequest(BaseModel):
     product_inputs: ProductInputs

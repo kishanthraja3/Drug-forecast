@@ -10,10 +10,21 @@ interface HeaderProps {
   backHref?: string;
   actions?: React.ReactNode;
   onExport?: () => void;
+  showExport?: boolean;
   hideExport?: boolean;
 }
 
-export default function Header({ title, subtitle, backHref, actions, onExport, hideExport = false }: HeaderProps) {
+export default function Header({ 
+  title, 
+  subtitle, 
+  backHref, 
+  actions, 
+  onExport, 
+  showExport = false, 
+  hideExport = false 
+}: HeaderProps) {
+  const shouldShowExport = !hideExport && (showExport || Boolean(onExport));
+
   const handleExport = () => {
     if (onExport) {
       onExport();
@@ -46,21 +57,19 @@ export default function Header({ title, subtitle, backHref, actions, onExport, h
 
       <div className="flex items-center gap-3">
         {actions}
-        {!hideExport && (
-          <>
-            <button
-              onClick={handleExport}
-              className="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors border border-slate-300 shadow-2xs"
-            >
-              <Download className="w-3.5 h-3.5 text-blue-600" /> Export Report
-            </button>
-            <div className="w-px h-6 bg-slate-200 mx-1" />
-            <button className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors relative">
-              <Bell className="w-4 h-4" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-cyan-500 rounded-full" />
-            </button>
-          </>
+        {shouldShowExport && (
+          <button
+            onClick={handleExport}
+            className="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors border border-slate-300 shadow-2xs cursor-pointer"
+          >
+            <Download className="w-3.5 h-3.5 text-blue-600" /> Export Report
+          </button>
         )}
+        <div className="w-px h-6 bg-slate-200 mx-1" />
+        <button className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors relative cursor-pointer">
+          <Bell className="w-4 h-4" />
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-cyan-500 rounded-full" />
+        </button>
       </div>
     </header>
   );

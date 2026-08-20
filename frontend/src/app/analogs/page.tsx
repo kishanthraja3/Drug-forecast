@@ -23,12 +23,19 @@ export default function AnalogsPage() {
       .catch(() => setOptions(['All', 'Cardiology', 'Oncology', 'Neurology', 'Immunology']));
   }, []);
 
+  const parseProductId = (id: string) => {
+    const match = String(id || '').match(/\d+/);
+    return match ? parseInt(match[0], 10) : 999999;
+  };
+
   useEffect(() => {
     setLoading(true);
     fetchAnalogsCatalog(search, selectedTA)
       .then((res) => {
-        setAnalogs(res.analogs);
-        setTotalCount(res.total);
+        const list = res.analogs || [];
+        const sorted = [...list].sort((a, b) => parseProductId(a.product_id) - parseProductId(b.product_id));
+        setAnalogs(sorted);
+        setTotalCount(res.total || sorted.length);
         setPage(1);
       })
       .catch((err) => console.error(err))

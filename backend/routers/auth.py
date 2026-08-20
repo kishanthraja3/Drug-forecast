@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 from sqlalchemy.orm import Session
-from backend.database import get_db
+from backend.database import get_db, get_next_id
 from backend.models import Organization, User
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
@@ -43,7 +43,10 @@ def sign_up(req: SignUpRequest, db: Session = Depends(get_db)):
         # Create or find organization
         org = db.query(Organization).filter(Organization.name == req.organization_name.strip()).first()
         if not org:
-            org = Organization(name=req.organization_name.strip())
+            org = Organization(
+                id=get_next_id(db, Organization),
+                name=req.organization_name.strip()
+            )
             db.add(org)
             db.commit()
             db.refresh(org)
@@ -54,6 +57,7 @@ def sign_up(req: SignUpRequest, db: Session = Depends(get_db)):
         # Create User
         hashed = hash_pass(req.password)
         new_user = User(
+            id=get_next_id(db, User),
             email=req.email.strip(),
             full_name=req.full_name.strip(),
             hashed_password=hashed,

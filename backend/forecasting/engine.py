@@ -1,7 +1,11 @@
 import os
+import io
+import boto3
 import pandas as pd
 import numpy as np
 
+from sqlalchemy import text
+from backend.database import engine as db_engine
 from .bass import BassModelTrainer, bass_weekly_curve, P_FEATURES, Q_FEATURES
 from .gower_similarity import get_top_analogs, FEATURES, CATEGORICAL_FEATURES
 from .analog import compute_analog_curve
@@ -17,6 +21,82 @@ class ForecastingEngine:
         self.is_initialized = False
 
     def initialize(self):
+        # Retrieve Databricks table names and schema info
+        table_bass = os.getenv("TABLE_BASS_FINAL")
+        table_weekly = os.getenv("TABLE_WEEKLY_RX_FINAL")
+        table_similarity = os.getenv("TABLE_SIMILARITY_FEATURES")
+        db_catalog = os.getenv("DATABRICKS_CATALOG", "drug_forecasting")
+        gold_schema = os.getenv("DATABRICKS_GOLD_SCHEMA", "gold")
+
+        # Prioritize loading datasets from Databricks Delta tables (Gold Layer)
+        if table_bass and table_weekly and table_similarity:
+            try:
+                # Use fully qualified names: catalog.gold_schema.table_name
+                fq_bass = f"{db_catalog}.{gold_schema}.{table_bass}"
+                fq_weekly = f"{db_catalog}.{gold_schema}.{table_weekly}"
+                fq_similarity = f"{db_catalog}.{gold_schema}.{table_similarity}"
+
+                print("Connecting to Databricks to load Gold tables...")
+                with db_engine.connect() as connection:
+                    print(f"Loading table: {fq_bass}...")
+                    result_bass = connection.execute(text(f"SELECT * FROM {fq_bass}"))
+                    self.bass_df = pd.DataFrame(result_bass.fetchall(), columns=result_bass.keys())
+
+                    print(f"Loading table: {fq_weekly}...")
+                    result_weekly = connection.execute(text(f"SELECT * FROM {fq_weekly}"))
+                    self.weekly_df = pd.DataFrame(result_weekly.fetchall(), columns=result_weekly.keys())
+
+                    print(f"Loading table: {fq_similarity}...")
+                    result_similarity = connection.execute(text(f"SELECT * FROM {fq_similarity}"))
+                    self.similarity_df = pd.DataFrame(result_similarity.fetchall(), columns=result_similarity.keys())
+                
+                print("Benchmark datasets loaded successfully from Databricks Gold tables!")
+            except Exception as e:
+                print(f"Error loading Databricks Gold tables: {str(e)}. Falling back to S3 loader...")
+                self._load_s3_data()
+        else:
+            self._load_s3_data()
+
+        self.trainer = BassModelTrainer()
+        self.trainer.fit(self.bass_df, self.weekly_df)
+        self.is_initialized = True
+
+    def _load_s3_data(self):
+        bucket_name = os.getenv("S3_BUCKET_NAME")
+        
+        if bucket_name:
+            try:
+                # Load AWS credentials (can fall back to IAM role / local config if keys are not provided)
+                aws_key = os.getenv("AWS_ACCESS_KEY_ID")
+                aws_secret = os.getenv("AWS_SECRET_ACCESS_KEY")
+                aws_region = os.getenv("AWS_REGION", "us-east-1")
+                
+                if aws_key and aws_secret:
+                    s3_client = boto3.client(
+                        's3',
+                        aws_access_key_id=aws_key,
+                        aws_secret_access_key=aws_secret,
+                        region_name=aws_region
+                    )
+                else:
+                    s3_client = boto3.client('s3', region_name=aws_region)
+                
+                print(f"Loading benchmark datasets from S3 bucket: {bucket_name}...")
+                bass_obj = s3_client.get_object(Bucket=bucket_name, Key="bass_final.csv")
+                sim_obj = s3_client.get_object(Bucket=bucket_name, Key="similarity+analog_features_final.csv")
+                weekly_obj = s3_client.get_object(Bucket=bucket_name, Key="weekly_rx_final.csv")
+                
+                self.bass_df = pd.read_csv(io.BytesIO(bass_obj['Body'].read()))
+                self.similarity_df = pd.read_csv(io.BytesIO(sim_obj['Body'].read()))
+                self.weekly_df = pd.read_csv(io.BytesIO(weekly_obj['Body'].read()))
+                print("Benchmark datasets loaded successfully from S3!")
+            except Exception as e:
+                print(f"Error loading datasets from S3: {str(e)}. Falling back to local data directory...")
+                self._load_local_data()
+        else:
+            self._load_local_data()
+
+    def _load_local_data(self):
         bass_path = os.path.join(self.data_dir, "bass_final.csv")
         sim_path = os.path.join(self.data_dir, "similarity+analog_features_final.csv")
         weekly_path = os.path.join(self.data_dir, "weekly_rx_final.csv")
@@ -24,10 +104,6 @@ class ForecastingEngine:
         self.bass_df = pd.read_csv(bass_path)
         self.similarity_df = pd.read_csv(sim_path)
         self.weekly_df = pd.read_csv(weekly_path)
-
-        self.trainer = BassModelTrainer()
-        self.trainer.fit(self.bass_df, self.weekly_df)
-        self.is_initialized = True
 
     def run(self, new_drug: dict, top_k: int = 3, w_analog: float = 0.10) -> dict:
         if not self.is_initialized:

@@ -104,10 +104,29 @@ CTS/
 cd CTS
 
 # Install backend dependencies
-pip install fastapi uvicorn sqlalchemy psycopg2-binary pydantic pandas numpy scikit-learn python-dotenv
+pip install fastapi uvicorn sqlalchemy psycopg2-binary pydantic pandas numpy scikit-learn python-dotenv boto3 sqlalchemy-databricks databricks-sql-connector
 
-# Set up PostgreSQL database connection in .env
+# Set up database connection in .env (SQLite/PostgreSQL fallback or Databricks SQL Warehouse)
+# For SQLite:
+# DATABASE_URL=sqlite:///./pharmalaunch.db
+# For PostgreSQL:
 # DATABASE_URL=postgresql://postgres:your_password@localhost:5432/pharmalaunch
+#
+# For Databricks and AWS S3 integration, add:
+# DATABRICKS_SERVER_HOSTNAME=your-instance.cloud.databricks.com
+# DATABRICKS_HTTP_PATH=/sql/1.0/warehouses/your-warehouse-id
+# DATABRICKS_TOKEN=your-personal-access-token
+# DATABRICKS_CATALOG=hive_metastore
+# DATABRICKS_SCHEMA=default
+# S3_BUCKET_NAME=your-forecast-data-bucket
+# AWS_ACCESS_KEY_ID=your_key
+# AWS_SECRET_ACCESS_KEY=your_secret
+# AWS_REGION=us-east-1
+#
+# To load baseline datasets directly from Databricks Delta tables (Gold Layer):
+# TABLE_BASS_FINAL=gold_bass_final
+# TABLE_WEEKLY_RX_FINAL=gold_weekly_rx_final
+# TABLE_SIMILARITY_FEATURES=gold_similarity_analog_features_final
 
 # Start backend server
 uvicorn backend.main:app --reload --port 8000
