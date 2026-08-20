@@ -116,7 +116,7 @@ export async function updateUserProfile(payload: {
   current_password?: string;
   new_password?: string;
 }): Promise<any> {
-  const res = await fetch(`http://localhost:8000/api/auth/update`, {
+  const res = await fetch(`${API_BASE_URL}/auth/update`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
