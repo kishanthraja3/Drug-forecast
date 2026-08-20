@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Building2, Mail, Lock, User, ArrowRight, ArrowLeft, CheckCircle2, UserCheck, Eye, EyeOff } from 'lucide-react';
+import { getApiBaseUrl } from '@/lib/api';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -25,7 +26,7 @@ export default function LoginPage() {
     setError(null);
     setSuccess(null);
 
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+    const apiBase = getApiBaseUrl();
     const endpoint = isSignUp 
       ? `${apiBase}/auth/signup` 
       : `${apiBase}/auth/signin`;

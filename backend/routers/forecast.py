@@ -13,7 +13,7 @@ from backend.forecasting.scenario_analysis import run_scenario_analysis
 from backend.database import get_db, get_next_id
 from backend.models import UserForecastInput, ForecastRecord, AnalogProduct, Organization, User
 
-router = APIRouter(prefix="/api", tags=["forecast"])
+router = APIRouter(tags=["forecast"])
 
 # Global engine instance initialized in main
 engine_instance: ForecastingEngine = None

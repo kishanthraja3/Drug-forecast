@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from backend.database import get_db, get_next_id
 from backend.models import Organization, User
 
-router = APIRouter(prefix="/api/auth", tags=["auth"])
+router = APIRouter(tags=["auth"])
 
 class SignUpRequest(BaseModel):
     organization_name: str

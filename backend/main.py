@@ -104,7 +104,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(auth_router.router)
+# Mount routes under both /api and root prefixes for seamless production compatibility
+app.include_router(auth_router.router, prefix="/api/auth")
+app.include_router(auth_router.router, prefix="/auth")
+app.include_router(forecast_router.router, prefix="/api")
 app.include_router(forecast_router.router)
 
 @app.get("/")
