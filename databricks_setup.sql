@@ -59,13 +59,16 @@ CREATE TABLE IF NOT EXISTS drug_forecasting.gold.analog_features (
 );
 
 -- ==============================================================================
--- STEP 3: COPY CSV DATA INTO GOLD TABLES
--- (Replace '/Volumes/drug_forecasting/gold/data/' or 's3://...' with your source path)
+-- STEP 3: CREATE VOLUME AND UPLOAD CSV DATA
+-- Run this command first, then upload the 3 CSV files (bass_final.csv,
+-- weekly_rx_final.csv, similarity+analog_features_final.csv) into the volume
+-- 'raw_files' via Databricks Catalog UI before proceeding to COPY INTO.
 -- ==============================================================================
+CREATE VOLUME IF NOT EXISTS drug_forecasting.gold.raw_files;
 
 -- Ingest Bass Features CSV (bass_final.csv)
 COPY INTO drug_forecasting.gold.bass_features
-FROM '/Volumes/drug_forecasting/gold/data/bass_final.csv'
+FROM '/Volumes/drug_forecasting/gold/raw_files/bass_final.csv'
 FILEFORMAT = CSV
 FORMAT_OPTIONS (
     'header' = 'true',
@@ -76,7 +79,7 @@ COPY_OPTIONS ('mergeSchema' = 'true');
 
 -- Ingest Weekly Rx Trajectories CSV (weekly_rx_final.csv)
 COPY INTO drug_forecasting.gold.weekly_rx
-FROM '/Volumes/drug_forecasting/gold/data/weekly_rx_final.csv'
+FROM '/Volumes/drug_forecasting/gold/raw_files/weekly_rx_final.csv'
 FILEFORMAT = CSV
 FORMAT_OPTIONS (
     'header' = 'true',
@@ -87,7 +90,7 @@ COPY_OPTIONS ('mergeSchema' = 'true');
 
 -- Ingest Analog Clinical & Commercial Features CSV (similarity+analog_features_final.csv)
 COPY INTO drug_forecasting.gold.analog_features
-FROM '/Volumes/drug_forecasting/gold/data/similarity+analog_features_final.csv'
+FROM '/Volumes/drug_forecasting/gold/raw_files/similarity+analog_features_final.csv'
 FILEFORMAT = CSV
 FORMAT_OPTIONS (
     'header' = 'true',

@@ -75,20 +75,30 @@ CREATE TABLE IF NOT EXISTS drug_forecasting.gold.analog_features (
 
 ---
 
-## 📥 Step 3: Ingest the 3 CSV Files via `COPY INTO`
+## 📥 Step 3: Create Volume & Ingest the 3 CSV Files via `COPY INTO`
 
 ### Option A: Using Databricks Unity Catalog Volume (Recommended)
-1. In Databricks Workspace, go to **Catalog → `drug_forecasting` → `gold` → Create Volume** named `data`.
-2. Click **Upload to Volume** and upload the 3 CSV files from `data/`:
-   - `bass_final.csv`
-   - `weekly_rx_final.csv`
-   - `similarity+analog_features_final.csv`
-3. Execute the following `COPY INTO` commands in SQL Editor:
+
+1. **Create the Volume in Databricks**:
+   Run the following SQL command:
+   ```sql
+   CREATE VOLUME IF NOT EXISTS drug_forecasting.gold.raw_files;
+   ```
+
+2. **Upload CSV Files into the Volume**:
+   - In your Databricks Workspace, go to **Catalog → `drug_forecasting` → `gold` → `raw_files`**.
+   - Click **Upload to this volume** and select the 3 CSV files from your local `data/` folder:
+     - `bass_final.csv`
+     - `weekly_rx_final.csv`
+     - `similarity+analog_features_final.csv`
+
+3. **Execute the `COPY INTO` Commands**:
+   Run the following SQL in SQL Editor:
 
 ```sql
 -- 1. Ingest Bass Features
 COPY INTO drug_forecasting.gold.bass_features
-FROM '/Volumes/drug_forecasting/gold/data/bass_final.csv'
+FROM '/Volumes/drug_forecasting/gold/raw_files/bass_final.csv'
 FILEFORMAT = CSV
 FORMAT_OPTIONS (
     'header' = 'true',
@@ -99,7 +109,7 @@ COPY_OPTIONS ('mergeSchema' = 'true');
 
 -- 2. Ingest Weekly Rx Adoption Trajectories
 COPY INTO drug_forecasting.gold.weekly_rx
-FROM '/Volumes/drug_forecasting/gold/data/weekly_rx_final.csv'
+FROM '/Volumes/drug_forecasting/gold/raw_files/weekly_rx_final.csv'
 FILEFORMAT = CSV
 FORMAT_OPTIONS (
     'header' = 'true',
@@ -110,7 +120,7 @@ COPY_OPTIONS ('mergeSchema' = 'true');
 
 -- 3. Ingest Analog Clinical & Commercial Features
 COPY INTO drug_forecasting.gold.analog_features
-FROM '/Volumes/drug_forecasting/gold/data/similarity+analog_features_final.csv'
+FROM '/Volumes/drug_forecasting/gold/raw_files/similarity+analog_features_final.csv'
 FILEFORMAT = CSV
 FORMAT_OPTIONS (
     'header' = 'true',
