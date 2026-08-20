@@ -114,7 +114,7 @@ export default function AccountPage() {
       <Header
         title="Account & Profile Settings"
         subtitle="Manage your organization profile, credentials, and account details"
-        backHref="/"
+        backHref="/dashboard"
       />
 
       <div className="p-8 max-w-4xl mx-auto w-full space-y-6">

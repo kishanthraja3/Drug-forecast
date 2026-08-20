@@ -155,7 +155,7 @@ export default function NewForecastPage() {
       sessionStorage.setItem('latest_forecast_payload', JSON.stringify(payload));
       sessionStorage.setItem('latest_forecast_result', JSON.stringify(result));
       
-      router.push(`/forecast/results?data=${encodedData}`);
+      router.push('/forecast/results');
     } catch (err: any) {
       setError(err.message || 'Failed to generate forecast');
       setLoading(false);
@@ -200,7 +200,7 @@ export default function NewForecastPage() {
       <Header
         title="Create New Launch Forecast"
         subtitle="Configure clinical, commercial, and methodology parameters"
-        backHref="/"
+        backHref="/dashboard"
       />
 
       <div className="p-8 max-w-4xl mx-auto w-full space-y-6">

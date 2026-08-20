@@ -15,8 +15,8 @@ export default function SavedForecastsPage() {
   const handleLoadRecord = (r: SavedForecastRecord) => {
     const payload = {
       product_inputs: r.input_json,
-      top_k: r.top_k || 3,
-      w_analog: r.w_analog || 0.10
+      top_k: r.forecast_result_json?.assumptions?.top_k || 3,
+      w_analog: r.forecast_result_json?.assumptions?.w_analog || 0.10
     };
     sessionStorage.setItem('latest_forecast_payload', JSON.stringify(payload));
     router.push('/forecast/results');
@@ -37,7 +37,7 @@ export default function SavedForecastsPage() {
       <Header
         title="Saved Forecast Records"
         subtitle="Historical saved scenarios and commercial launch forecast runs"
-        backHref="/"
+        backHref="/dashboard"
       />
 
       <div className="p-8 max-w-7xl mx-auto w-full space-y-6">

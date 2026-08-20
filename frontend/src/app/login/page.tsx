@@ -61,7 +61,7 @@ export default function LoginPage() {
 
       setSuccess(isSignUp ? 'Organization account created! Redirecting to Dashboard...' : 'Signed in successfully! Redirecting to Dashboard...');
       setTimeout(() => {
-        window.location.href = '/';
+        window.location.href = '/dashboard';
       }, 500);
     } catch (err: any) {
       setError(err.message || 'Authentication failed');

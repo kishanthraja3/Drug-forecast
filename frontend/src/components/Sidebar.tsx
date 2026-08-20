@@ -32,7 +32,7 @@ export default function Sidebar() {
     if (cachedRole) setRole(cachedRole);
   }, []);
 
-  if (pathname === '/login') {
+  if (pathname === '/login' || pathname === '/') {
     return null;
   }
 
@@ -44,7 +44,7 @@ export default function Sidebar() {
   };
 
   const navItems = [
-    { name: 'Dashboard', href: '/', icon: LayoutDashboard },
+    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'New Launch Forecast', href: '/forecast/new', icon: PlusCircle },
     { name: 'Forecast Analysis', href: '/forecast/results', icon: TrendingUp },
     { name: 'Forecast Explanations', href: '/forecast/explanations', icon: BookOpen },

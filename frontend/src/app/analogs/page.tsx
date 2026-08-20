@@ -50,7 +50,7 @@ export default function AnalogsPage() {
       <Header
         title={`Historical Analog Catalog (${totalCount} Products)`}
         subtitle="Explore all 150 benchmarked pharmaceutical launch profiles & 52-week curves"
-        backHref="/"
+        backHref="/dashboard"
       />
 
       <div className="p-8 max-w-7xl mx-auto w-full space-y-6">
